@@ -27,3 +27,8 @@ s <- function(x,n){
 colMax <- function(data){
 	apply(data,2, which.max)
 }
+
+# ——————————————————————————————————————————————————————————————————————————
+# Getting Dates in correct format from a matlab dataset
+# ——————————————————————————————————————————————————————————————————————————
+Matlab2Rdate <- function(val) as.POSIXct((val - 719529)*86400, origin = "1970-01-01", tz = "UTC") 
