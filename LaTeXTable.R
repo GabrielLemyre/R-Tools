@@ -26,7 +26,8 @@ Make.LaTeX.Table = function(R.Matrix.Object,
 							copy.CB=TRUE,...){ # Ecrit le code LaTeX dun environnement Tabular a partir dune matrice R
 	
 	n.col = max(ncol(R.Matrix.Object),1)
-	n.Row = max(nrow(R.Matrix.Object),length(R.Matrix.Object))
+	# n.Row = max(nrow(R.Matrix.Object),length(R.Matrix.Object))
+	n.Row = nrow(R.Matrix.Object)
 	
 	Row.Titles.Ind = FALSE
 	Col.Titles.Ind = FALSE
@@ -50,7 +51,7 @@ Make.LaTeX.Table = function(R.Matrix.Object,
 				chr(92),"linewidth} \n",
 				chr(92),"centering",
 				if(caption){paste(chr(92),"captionof{table}{",title,"} \n",sep="")},
-				chr(92),"label{",title,"} \n",
+				chr(92),"label{tab : ",title,"} \n",
 				chr(92),"begin{tabular}[t]{",pos.col,"} \n",sep="")
 	
 	Print.Nth.Element = function(Element,String,Col,last=FALSE){
