@@ -31,4 +31,12 @@ colMax <- function(data){
 # ——————————————————————————————————————————————————————————————————————————
 # Getting Dates in correct format from a matlab dataset
 # ——————————————————————————————————————————————————————————————————————————
-Matlab2Rdate <- function(val) as.POSIXct((val - 719529)*86400, origin = "1970-01-01", tz = "UTC") 
+Matlab2Rdate <- function(val) as.POSIXct((val - 719529)*86400, origin = "1970-01-01", tz = "UTC")
+
+
+# ——————————————————————————————————————————————————————————————————————————
+# Adds underscores to a string of characters in place of spaces - for bibliographical purposes
+# ——————————————————————————————————————————————————————————————————————————
+p <- function(A){
+  return(gsub(" ", "_", A, fixed = TRUE))
+}
