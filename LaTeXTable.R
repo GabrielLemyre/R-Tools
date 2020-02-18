@@ -114,19 +114,3 @@ Make.LaTeX.Table = function(R.Matrix.Object,
 					  "\n % ------------------------ \n",sep="")) # Limprime aussi dans la console R
 	}
 }
-
-chr <- function(n) { rawToChar(as.raw(n)) }
-
-Copie.Presse.Papier <- function(string) {
-	os <- Sys.info()[['sysname']]
-	if (os == "Windows") { # Si systeme dexploitation windows
-		return(utils::writeClipboard(string))
-	} else if (os == "Darwin") { # Si systeme dexploitation iOS
-		Mac.Copie.Presse.Papier <- function(string){
-			presse.papier <- pipe("pbcopy", "w")
-			cat(string, file = presse.papier, sep = "\n")
-			close(presse.papier)	# Fermer lobjet presse-papier
-		}
-		return(Mac.Copie.Presse.Papier(string))
-	}
-}
