@@ -98,19 +98,19 @@ Make.LaTeX.Table = function(R.Matrix.Object,
 	}
 	
 	
+	Final.str <- paste(str,"\n",
+	                   chr(92),"end{tabular} \n",
+	                   chr(92),"end{minipage}","\n ~",chr(92),chr(92),
+	                   "\n % ------------------------ \n",sep="")
 	
 	# Fin de lexecution et retour du resultat
 	if(copy.CB){
-		Copie.Presse.Papier(paste(str,"\n",
-								  chr(92),"end{tabular} \n",
-								  chr(92),"end{minipage}","\n ~",chr(92),chr(92),
-								  "\n % ------------------------ \n",sep="")) # Copie le string concatene au presse-papier
+		Copie.Presse.Papier(Final.str) # Copie le string concatene au presse-papier
 	}
 	
 	if(print.Cons){
-		str=cat(paste(str,"\n",
-					  chr(92),"end{tabular} \n",
-					  chr(92),"end{minipage}","\n ~",chr(92),chr(92),
-					  "\n % ------------------------ \n",sep="")) # Limprime aussi dans la console R
+		str=cat(Final.str) # Limprime aussi dans la console R
 	}
+	
+	return(Final.str)
 }
