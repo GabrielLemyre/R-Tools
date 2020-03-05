@@ -7,12 +7,17 @@
 # Under the supervision of :
 # Maciej AUGUSTYNIAK
 # ----------------------------------------------------------------------------------------------------
-# Last version : November 14th, 2019
+# First version : November 14th, 2019
+# Last version : 4 mars 2020
 # ----------------------------------------------------------------------------------------------------
 
 # ——————————————————————————————————————————————————————————————————————————
 # SET OF BASIC FUNCTIONS TO MANIPULATE DATA AND STRINGS
 # ——————————————————————————————————————————————————————————————————————————
+
+afficher.ligne.console <- function() {
+  cat("# --------------------------------------------------------\n")
+}
 
 # ——————————————————————————————————————————————————————————————————————————
 # Sourcing code to check for errors
@@ -116,7 +121,8 @@ colMax <- function(data){
 # ——————————————————————————————————————————————————————————————————————————
 # Getting Dates in correct format from a matlab dataset
 # ——————————————————————————————————————————————————————————————————————————
-Matlab2Rdate <- function(val) as.POSIXct((val - 719529)*86400, origin = "1970-01-01", tz = "UTC")
+
+Matlab2Rdate <- function(val){ as.POSIXct((val - 719529)*86400, origin = "1970-01-01", tz = "UTC") }
 
 # ——————————————————————————————————————————————————————————————————————————
 # Transforme un nombre en son caractère associé
