@@ -15,7 +15,7 @@
 # SET OF BASIC FUNCTIONS TO MANIPULATE DATA AND STRINGS
 # ——————————————————————————————————————————————————————————————————————————
 
-afficher.ligne.console <- function() {
+hline <- function() {
   cat("# --------------------------------------------------------\n")
 }
 
