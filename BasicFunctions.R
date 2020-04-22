@@ -156,3 +156,68 @@ bib.prep <- function(A){
   Copie.Presse.Papier(str) # Copie dans le presse papier
   return(str)
 }
+
+
+# ——————————————————————————————————————————————————————————————————————————
+# Test égalité de deux listes
+# ——————————————————————————————————————————————————————————————————————————
+diff.liste <- function(list.A, list.B){
+  n <- length(list.A)
+  liste.err <- list.A # Utilisation de la première liste comme support
+  new.nom.var <- rep(NA,n)
+  
+  # Impression des erreurs un paramètre à la fois
+  for (i in 1:length(list.A)){
+    nom.var <- names(list.A[i])
+    new.nom.var[i] <- paste("diff",nom.var,collapse="",sep=".")
+    
+    err <- list.A[[i]]-list.B[[i]]
+    
+    liste.err[[i]] <- err
+    
+    abs.err <- abs(err)
+    max.index <- which.max(abs.err)
+    err.perc <- 100*round((abs.err[max.index]/list.A[[i]][max.index]),4)
+    
+    # Impression message informations
+    cat("Max diff(",nom.var,") = ",max(abs.err)," (",err.perc,"%)\n",sep="")
+  }
+  
+  # Changement des noms - ajout préfix "diff."
+  names(liste.err) <- new.nom.var
+  
+  return(liste.err)
+}
+
+
+
+# ——————————————————————————————————————————————————————————————————————————
+# Arrangement des objets en fonction de l'ordre d'un des objets
+# ——————————————————————————————————————————————————————————————————————————
+order.sigma <- function(liste,order.var="sigma",Transition.Type){
+  nbRegime <- length(liste[[order.var]])
+  
+  # Getting sigma order
+  augmented.order.var <- cbind(liste[[order.var]],c(1:nbRegime))
+  order.matrix <- augmented.order.var[order(augmented.order.var[,1], decreasing = TRUE),]
+  order.vector <- order.matrix[,2]
+  
+  # Ordering the parameters in decreasing order of volatility
+  mu.F <- liste$mu[order.vector]
+  sigma.F <- liste[[order.var]][order.vector]
+  if (Transition.Type=="Homogeneous"){
+    Gamma.F <- liste$Gamma[order.vector,order.vector]
+  } else if (Transition.Type=="Diebold"){
+    Gamma.F <- liste$Gamma[order.vector,]
+  } else if (Transition.Type=="Diebold.w.filter"){
+    Gamma.F <- liste$Gamma[order.vector,]
+  }
+  
+  # Reassignment of the parameters for the returned parameters in
+  # HMM.Train to match the ordered values passed in the other functions
+  liste$mu <- mu.F
+  liste$sigma <- sigma.F
+  liste$Gamma <- Gamma.F
+  
+  return(liste)
+}
