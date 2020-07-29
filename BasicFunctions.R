@@ -15,6 +15,30 @@
 # SET OF BASIC FUNCTIONS TO MANIPULATE DATA AND STRINGS
 # ——————————————————————————————————————————————————————————————————————————
 
+
+
+# ——————————————————————————————————————————————————————————————————————————
+# Testing if FILE exists, and creating it if not
+# ——————————————————————————————————————————————————————————————————————————
+file.test <- function(file){
+  if(!file.exists(file)){
+    file.create(file) 
+    print(paste("File :",file,"created successfully."))
+  }
+}
+
+
+# ——————————————————————————————————————————————————————————————————————————
+# Testing if DOCUMENT exists, and creating it if not
+# ——————————————————————————————————————————————————————————————————————————
+document.test <- function(file){
+  if(!dir.exists(file)){
+    dir.create(file) 
+    print(paste("File :",file,"created successfully."))
+  }
+}
+
+
 hline <- function() {
   cat("# --------------------------------------------------------\n")
 }
@@ -27,6 +51,8 @@ sources_correctly <- function(file)
   fn <- try(source(file), silent = TRUE)
   if (inherits(fn, "try-error")){
     stop(paste("\n-------------------------\nFile :",file,"\nError :",fn))
+  } else {
+    cat("Sourcing :",basename(file),"\n")
   }
 }
 
@@ -37,10 +63,47 @@ substrRight <- function(x, n){
   substr(x, nchar(x)-n+1, nchar(x))
 }
 
+
+
+# ——————————————————————————————————————————————————————————————————————————
+# file path remaker
+# ——————————————————————————————————————————————————————————————————————————
+make.new.path <- function(file.path,new.path.str,full.path=FALSE){
+  if (full.path){
+    str.split <- strsplit(file.path, "/", fixed = TRUE)[[1]]
+    file.name <- str.split[length(str.split)]
+  } else {
+    file.name <- file.path
+  }
+  new.file.path <- paste(new.path.str,file.name,sep="",collapse="")
+  return(new.file.path)
+}
+
 # ——————————————————————————————————————————————————————————————————————————
 # Listing all files in a directory and keeping a list of .R files with full paths
 # ——————————————————————————————————————————————————————————————————————————
-Full.Source <- function(path, first.pass=TRUE, ignored.files.vector=NULL, print.inside.message=FALSE){
+file.list <- function(path, first.pass=TRUE, ignored.files.vector=NULL, print.inside.message=FALSE,type="all",
+                      from.git=FALSE,
+                      file.names=NULL){
+  
+  
+  # If sourcing files from github repository
+  if (from.git){
+    if(is.null(file.names)){stop("No files provided for the file.names argument.")}
+    git.file.paths <- c()
+    cat(hline(),"\n")
+    for (i in file.names){
+      file.path <- make.new.path(i,new.path.str=path,full.path = TRUE)
+      git.file.paths <- append(git.file.paths,file.path)
+      cat("sourcing :",file.path,"\n")
+      script <- getURL(file.path, ssl.verifypeer = FALSE)
+      cat("evaluating :",file.path,"\n")
+      eval(parse(text = script))
+    }
+    cat(hline(),"\n")
+    return()
+  }
+  
   R.Files <- c() # Initialisation de la liste de fonction .R
   
   # longueur de la liste des dossiers et fichiers à ignorer
@@ -49,10 +112,14 @@ Full.Source <- function(path, first.pass=TRUE, ignored.files.vector=NULL, print.
   # Information sur le document analysé
   if (print.inside.message){ cat("\n# ------------------------------\n","Inside",path,"\n# ------------------------------\n")}
   
+  
   # Obtention de la liste de tous les documents dans le fichier en path
   liste.document <- list.files(path, pattern=NULL, 
                                all.files=FALSE,
                                full.names=TRUE)
+  
+  if (!length(liste.document)){stop(paste("No files in specified path : ",path,"\n",sep="",collapse=""))}
+  
   
   # Impression de la liste des documents si c'est le premier appels de la foncion
   if (first.pass==TRUE){
@@ -64,27 +131,50 @@ Full.Source <- function(path, first.pass=TRUE, ignored.files.vector=NULL, print.
     # Si c'est le document qui appel la fonction ou un fichier qui l'appel,
     #   on le saute pour éviter les boucles infinies. 
     #   --> La liste des documents à sauter doit être donné par l'utilisateur <--
-    for (j in 1:n.files.ignored){
-      if (substrRight(liste.document[i],nchar(ignored.files.vector[j]))==ignored.files.vector[j]){next.bool=TRUE; break}else{next.bool=FALSE}
+    if (n.files.ignored>0){
+      for (j in 1:n.files.ignored){
+        if (substrRight(liste.document[i],nchar(ignored.files.vector[j]))==ignored.files.vector[j]){next.bool=TRUE; break}else{next.bool=FALSE}
+      }
+      if (next.bool){next}
     }
-    if (next.bool){next}
     
-    # Sinon on test pour les extensions ou lance la fonction dans les documents
-    #   internes de l'appel actuel
-    if (grepl("\\.R", liste.document[i])){ 
-      # Si document R, ajout à la liste
-      if (print.inside.message) cat("+",liste.document[i],"\n");
-      R.Files <- append(R.Files,liste.document[i])
-    } else if (grepl("\\.csv", liste.document[i])){ 
-      # Si document csv, rien pour l'instant
-      if (print.inside.message) cat("dataset",liste.document[i],"\n");
-    } else if (!grepl("\\.", liste.document[i])){ 
-      # Si aucune extension, on entre dans le document et roule la présente fonction
-      if (print.inside.message) print("--> Going Deeper <--");
-      R.Files <- append(R.Files,Full.Source(liste.document[i],first.pass=FALSE, ignored.files.vector, print.inside.message))
-    } else { 
-      # Si ce n'est pas un format recherché, on rejette et averti l'utilisateur
-      if (print.inside.message) cat("REJECTING",liste.document[i],":",grep("\\.", liste.document[i]),"\n");
+    
+    if (type=="all"){
+      # Sinon on test pour les extensions ou lance la fonction dans les documents
+      #   internes de l'appel actuel
+      if (grepl("\\.R", liste.document[i])){ 
+        # Si document R, ajout à la liste
+        if (print.inside.message) cat("+",liste.document[i],"\n");
+        R.Files <- append(R.Files,liste.document[i])
+      } else if (grepl("\\.csv", liste.document[i])){ 
+        # Si document csv, rien pour l'instant
+        if (print.inside.message) cat("dataset",liste.document[i],"\n");
+      } else if (!grepl("\\.", liste.document[i])){ 
+        # Si aucune extension, on entre dans le document et roule la présente fonction
+        if (print.inside.message) print("--> Going Deeper <--");
+        R.Files <- append(R.Files,file.list(liste.document[i],first.pass=FALSE, ignored.files.vector, print.inside.message))
+      } else { 
+        # Si ce n'est pas un format recherché, on rejette et averti l'utilisateur
+        if (print.inside.message) cat("REJECTING",liste.document[i],":",grep("\\.", liste.document[i]),"\n");
+      }
+    } else if (type=="R") {
+      if (grepl("\\.R", liste.document[i])){ 
+        # Si document R, ajout à la liste
+        if (print.inside.message) cat("+",liste.document[i],"\n");
+        R.Files <- append(R.Files,liste.document[i])
+      } else {
+        # Si ce n'est pas un format recherché, on rejette et averti l'utilisateur
+        if (print.inside.message) cat("REJECTING",liste.document[i],":",grep("\\.", liste.document[i]),"\n");
+      }
+    } else if (type=="pdf") {
+      if (grepl("\\.pdf", liste.document[i])){ 
+        # Si document R, ajout à la liste
+        if (print.inside.message) cat("+",liste.document[i],"\n");
+        R.Files <- append(R.Files,liste.document[i])
+      } else {
+        # Si ce n'est pas un format recherché, on rejette et averti l'utilisateur
+        if (print.inside.message) cat("REJECTING",liste.document[i],":",grep("\\.", liste.document[i]),"\n");
+      }
     }
     
   }
@@ -108,14 +198,14 @@ unpack.Ellipsis <- function(x,...){
 # ROUNDING with n zeros function <- Returns a string and not a numeric type
 # ——————————————————————————————————————————————————————————————————————————
 s <- function(x,n){
-	sprintf(paste("%.",n,"f",sep=""), round(x,n))
+  sprintf(paste("%.",n,"f",sep=""), round(x,n))
 }
 
 # ——————————————————————————————————————————————————————————————————————————
 # Getting COLUMNWISE MAXIMUM
 # ——————————————————————————————————————————————————————————————————————————
 colMax <- function(data){
-	apply(data,2, which.max)
+  apply(data,2, which.max)
 }
 
 # ——————————————————————————————————————————————————————————————————————————

@@ -11,7 +11,7 @@
 # ----------------------------------------------------------------------------------------------------
 
 # ——————————————————————————————————————————————————————————————————————————
-# GETTING TIME IN THE RIGHT FORMAT SEPERATED FROM HOURS, MINUTES AND SECONDS
+# GETTING TIME IN THE RIGHT FORMAT SEPARATED FROM HOURS, MINUTES AND SECONDS
 # ——————————————————————————————————————————————————————————————————————————
 get.Sys.Time <- function(){
 	actual.Time <- Sys.time()
