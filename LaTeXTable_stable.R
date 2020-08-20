@@ -21,10 +21,11 @@ Make.LaTeX.Table = function(R.Matrix.Object,
                             Row.Titles = NULL,
                             bold.col.title=FALSE,
                             bold.row.title=FALSE,
-                            color.mask=NULL,
+                            top.triangle.color=NULL,
+                            bottom.triangle.color=NULL,
+                            cond.color.triangle=TRUE,
+                            color.vector=NULL,
                             color.strenght=25,
-                            color.shading=FALSE,
-                            color.shading.factor=1.2,
                             rotate.col.titles=FALSE,
                             last.col.total=FALSE,
                             last.row.total=FALSE,
@@ -36,11 +37,13 @@ Make.LaTeX.Table = function(R.Matrix.Object,
                             Row.Titles.pos="r",
                             Cross.Lines=FALSE,
                             Top.Line=FALSE,
+                            highlight.diag=FALSE,
+                            highlight.color="yellow",
                             left.line=FALSE,
                             print.Cons=TRUE,
                             hlines=FALSE,
                             copy.CB=TRUE,...){ # Ecrit le code LaTeX dun environnement Tabular a partir dune matrice R
-          
+	
           # Initialisation de la variable gardant le nombre de table à imprimer
           nb.tables <- 1
           if (is.list(R.Matrix.Object)){
@@ -48,20 +51,8 @@ Make.LaTeX.Table = function(R.Matrix.Object,
           } else {
                     R.Matrix.Object <- list(R.Matrix.Object)
           }
-          
-          
-          # If the color mask matrix is absent, we make one with only zeros in it
-          if (is.null(color.mask)){
-                    print("No colors given")
-                    if (is.null(dim(R.Matrix.Object[[1]]))){
-                              color.mask$mask <- matrix(0L,
-                                                        nrow=length(R.Matrix.Object[[1]]))
-                    } else {
-                              color.mask$mask <- matrix(0L,
-                                                        nrow=dim(R.Matrix.Object[[1]])[1],
-                                                        ncol=dim(R.Matrix.Object[[1]])[2])
-                    }
-          }
+          # print(R.Matrix.Object)
+          # print(typeof(R.Matrix.Object))
           
           # Si l'utilisateur ne veut pas afficher les valeurs nulles, elles sont remplacées par des chaines vides
           if (remove.zeros){
@@ -113,7 +104,7 @@ Make.LaTeX.Table = function(R.Matrix.Object,
 	}
 	
 	# —————————————————————————————————————————————————————————————————————————————————————————————————————————
-	Print.Nth.Element = function(Element,String,last=FALSE, highlight.color=NULL,color.strenght=NULL){
+	Print.Nth.Element = function(Element,String,last=FALSE, highlight.color=NULL){
 	          color <- ""
 	          if (!is.null(highlight.color)){
 	                    color <- paste0("{\\cellcolor{",highlight.color,"!",color.strenght,"}}")
@@ -200,11 +191,25 @@ Make.LaTeX.Table = function(R.Matrix.Object,
 		if (n.col!=1){ # If there is more than one Column
 			for (k in 1:n.col){ # Does all the Columns and doesnt add & on the last one
 			          
-			          if (color.mask$mask[i,k]!=0){ 
+			          if (highlight.diag & k==i){ 
 			                    # Si la valeur est sur la diagonale, et qu'on veut la colorer
 			                    str = Print.Nth.Element(R.Matrix.Object[[i.table]][i,k],str,last=isTRUE(k==n.col), 
-			                                            highlight.color=color.mask$colors[color.mask$mask[i,k]],
-			                                            color.strenght=if (color.shading){color.strenght*min(1,color.shading.factor^abs(k-i))}else{color.strenght})
+			                                            highlight.color=highlight.color)
+			                    
+			          } else if (!is.null(top.triangle.color) && k>i && eval(parse(text=cond.color.triangle))){
+			                    # Si la valeur est dans le triangle supérieur de la matrice et qu'on veut le colorer avec conditions dans "cond.color.triangle"
+			                    str = Print.Nth.Element(R.Matrix.Object[[i.table]][i,k],str,last=isTRUE(k==n.col),
+			                                            highlight.color=top.triangle.color)
+			                    
+			          } else if (!is.null(bottom.triangle.color) && k<i && eval(parse(text=cond.color.triangle))){
+			                    # Si la valeur est dans le triangle inférieur de la matrice et qu'on veut le colorer avec conditions dans "cond.color.triangle"
+			                    str = Print.Nth.Element(R.Matrix.Object[[i.table]][i,k],str,last=isTRUE(k==n.col),
+			                                            highlight.color=bottom.triangle.color)
+			                    
+			          } else if (!is.null(color.vector)){
+			                    # Si les couleurs par lignes sont spécifié, on utilise ces couleurs
+			                    str = Print.Nth.Element(R.Matrix.Object[[i.table]][i,k],str,last=isTRUE(k==n.col),
+			                                            highlight.color=color.vector[i])
 			          } else {
 			                    # Sinon, on ne colore pas
 			                    str = Print.Nth.Element(R.Matrix.Object[[i.table]][i,k],str,last=isTRUE(k==n.col))
